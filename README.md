@@ -9,10 +9,10 @@ cd dock_title
 python3 dock_title.py
 ```
 
-2. If git is not installed on your system, get it from here:
+2. If **git** is not installed on your system, get it from here:
 [https://sourceforge.net/projects/git-osx-installer/files/git-2.33.0-intel-universal-mavericks.dmg/download]
 
-3. If you don't want to use git, just download the file
+3. If you **don't want to use git**, just download the file
 [https://github.com/vicneamt/dock_title/archive/refs/heads/main.zip],
 unzip it, open a Terminal and:
 ```
