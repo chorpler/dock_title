@@ -16,6 +16,6 @@ python3 dock_title.py
 [https://github.com/vicneamt/dock_title/archive/refs/heads/main.zip],
 unzip it, open a Terminal and:
 ```
-cd dock-title-main
+cd ~/Downloads/dock-title-main
 python3 dock_title.py
 ```
