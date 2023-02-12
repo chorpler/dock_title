@@ -41,6 +41,9 @@ if "recent-apps" in dock_plist_opened: # Check if there are any recent apps in t
 else: # If there are no recent apps in the dock, just use the persistent apps list.
     all_apps = persistent_apps
 
+if "persistent-others" in dock_plist_opened: # Check if there are any persistent others in the dock, and if so, add them to the persistent apps list.
+    all_apps = all_apps + dock_plist_opened["persistent-others"]
+
 def printApps():
     if not all_apps: # Check if there are any apps in the dock, and if not, exit.
         print(textStyle.BOLD + "Error: " + textStyle.reset + "No apps found in the dock. Exiting...\n")
