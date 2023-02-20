@@ -2,6 +2,9 @@
 
 Remove macOS's dock apps Titles and restore them with this script
 
+Video:
+[https://youtu.be/YynCxWRr6qc]
+
 1.
 ```
 git clone https://github.com/vicneamt/dock_title.git
