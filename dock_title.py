@@ -68,6 +68,14 @@ PersistentApps = List[PersistentApp]
 PersistentAppsRecords = Dict[int, PersistentApp]
 
 
+# Set up global variables and formatters
+PRETTY = pprint.PrettyPrinter(indent=2, width=200)
+all_apps: PersistentApps = list()
+persistent_apps: PersistentApps = list()
+# app_map: List[(int, PersistentApp)] = list()
+app_map: PersistentAppsRecords = dict()
+
+
 # Check if the script is running on MacOS, and if not, exit.
 if platform.system() != "Darwin": 
     print(textStyle.BOLD + "\nError: " + textStyle.reset + "This script is for MacOS only. Exiting...\n")
