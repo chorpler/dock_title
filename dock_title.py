@@ -81,8 +81,8 @@ if platform.system() != "Darwin":
     print(f"\n{TextStyle.RED}Error: this script is for MacOS only. Exiting...{TextStyle.NC}\n")
     exit()
 
-dock_plist = os.path.expanduser("~/Library/Preferences/com.apple.dock.plist") # Define the path to the dock plist file
-dock_plist_backup = os.path.expanduser("~/Library/Preferences/com.apple.dock.plist.backup") # Define the path to the dock plist backup file
+dock_plist = os.path.expanduser(plist_file)  # Define the path to the dock plist file
+dock_plist_backup = os.path.expanduser(plist_file_backup)  # Define the path to the dock plist backup file
 
 if not os.path.exists(dock_plist):  # Check if the dock plist file exists, and if not, exit.
     print(f"\n{TextStyle.RED}Error: Dock plist file not found. Exiting...{TextStyle.NC}\n")
