@@ -284,9 +284,55 @@ def writeChanges():  # Write the changes to the dock plist file and restart the 
     print("> Restarting the dock...\n")
     subprocess.run(["killall", "Dock"])
 
-print(chr(27) + "[2J" + app_logo) # Clear the terminal screen and print the app logo
-printApps() # Print the apps in the dock
-print("\n{}{}MENU{}:\n\n{}{:>6}{} to erase all titles\n{}{:>6}{} to restore all titles\n{}{:>6}{} to quit the app\n".format(textStyle.underline, textStyle.BOLD, textStyle.reset, textStyle.BOLD, "'a'", textStyle.reset, textStyle.BOLD, "'r'", textStyle.reset, textStyle.BOLD, "'q'", textStyle.reset)) # Print the menu
+
+def printApps():
+    global app_map
+    app_map = getAppList()
+    if not dict_good(app_map):
+        # Check if there are any apps in the dock, and if not, exit.
+        print(f"{TextStyle.RED}Error: No apps found in the dock. Exiting...${TextStyle.NC}\n")
+        exit()
+    # print("{}{}{:>4} {} {:>41}{}\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, "No.", "App Name", "App Title", TextStyle.reset))
+    print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}{'No.':>4} {'App Name'} {'App Title':>41}{TextStyle.NC}")
+    for app_number, app in app_map.items():
+        app_name = get_app_name(app)
+        # app_name = app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
+        if "file-label" in app["tile-data"]:
+            app_title = app["tile-data"]["file-label"]
+        else:
+            app_title = ""
+        # print("{:>3}. {} {:>40}".format(app_number+1, app_name, app_title))
+        print(f"{app_number+1:>3}. {app_name} {app_title:>40}")
+        # app_number += 1
+
+
+def refreshScreen():
+    # global app_map
+    # app_map = getAppList()
+    print(chr(27) + "[2J")  # Clear the terminal screen
+    printApps()
+    print(f"\n{TextStyle.UNDERLINE}{TextStyle.BOLD}MENU{TextStyle.NC}: {TextStyle.BOLD}{'a':>6}{TextStyle.NC} {'(erase all)':>12} {TextStyle.BOLD}{'r':>6}{TextStyle.NC} {'(restore all)':>12}")
+    print(f"      {TextStyle.BOLD}{'s':>6}{TextStyle.NC} {'(save all)':>12} {TextStyle.BOLD}{'q':>6}{TextStyle.NC} (quit)")
+    # print("\n{}{}MENU{}:\n\n{}{:>6}{} to erase all titles\n{}{:>6}{} to restore all titles\n{}{:>6}{} to quit the app\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, TextStyle.reset, TextStyle.BOLD, "'a'", TextStyle.reset, TextStyle.BOLD, "'r'",
+    # print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}MENU{TextStyle.NC}:\n\n{TextStyle.BOLD}{'a':>6}{TextStyle.NC} to erase all titles\n{TextStyle.BOLD}{'r':>6}{TextStyle.NC} to restore all titles\n{TextStyle.BOLD}{'q':>6}{TextStyle.NC} to quit the app\n")
+
+#
+#
+# print(chr(27) + "[2J" + app_logo)  # Clear the terminal screen and print the app logo
+#
+# printApps()  # Print the apps in the dock
+# print("\n{}{}MENU{}:\n\n{}{:>6}{} to erase all titles\n{}{:>6}{} to restore all titles\n{}{:>6}{} to quit the app\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, TextStyle.reset, TextStyle.BOLD, "'a'", TextStyle.reset, TextStyle.BOLD, "'r'",
+#                                                                                                                             TextStyle.reset, TextStyle.BOLD, "'q'", TextStyle.reset))  # Print the menu
+
+
+app_map = getAppList()
+app_numbers = list(app_map.keys())
+app_numbers = list(map(lambda x: str(x+1), app_numbers))
+
+dirty = False
+
+# print(f"App numbers: {' '.join(app_numbers)}")
+# refreshScreen()
 
 while True: # Get the user's choice
     user_choice = input("Enter your choice: ")
