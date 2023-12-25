@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "GUID": {
+      "type": "integer"
+    },
+    "tile-data": {
+      "type": "object",
+      "properties": {
+        "book": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {}
+        },
+        "bundle-identifier": {
+          "type": "string"
+        },
+        "dock-extra": {
+          "type": "boolean"
+        },
+        "file-data": {
+          "type": "object",
+          "properties": {
+            "_CFURLString": {
+              "type": "string"
+            },
+            "_CFURLStringType": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "_CFURLString",
+            "_CFURLStringType"
+          ]
+        },
+        "file-label": {
+          "type": "string",
+          "optional": true
+        },
+        "file-mod-date": {
+          "type": "integer"
+        },
+        "file-type": {
+          "type": "integer"
+        },
+        "is-beta": {
+          "type": "boolean"
+        },
+        "parent-mod-date": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "book",
+        "options",
+        "bundle-identifier",
+        "dock-extra",
+        "file-data",
+        "file-mod-date",
+        "file-type",
+        "is-beta",
+        "parent-mod-date"
+      ],
+      "optional": [
+        "file-label" 
+      ]
+    },
+    "tile-type": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "GUID",
+    "tile-data",
+    "tile-type"
+  ]
+}
