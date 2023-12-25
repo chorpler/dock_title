@@ -13,7 +13,8 @@ from collections import OrderedDict
 
 from typing import Any, List, Dict, TypedDict, Optional, cast
 
-import os, plistlib, subprocess, platform
+plist_file = "~/Library/Preferences/com.apple.dock.plist"
+plist_file_backup = "~/Library/Preferences/com.apple.dock.plist.backup"
 
 class textStyle: # Define text styles
    BOLD = '\033[1m'
