@@ -38,7 +38,35 @@ app_logo = """
 
 by Victor D. NEAMT
 """
-app_logo = "   ___  ____  _______ __   __________________   ____\n  / _ \/ __ \/ ___/ //_/  /_  __/  _/_  __/ /  / __/\n / // / /_/ / /__/ ,<      / / _/ /  / / / /__/ _/\n/____/\____/\___/_/|_|    /_/ /___/ /_/ /____/___/\n\nby Victor D. NEAMT\n"
+
+
+# Define types for a persistent app record from the Dock plist file
+PersistentAppFileData = TypedDict('PersistentAppFileData', {
+    "_CFURLString": str,
+    "_CFURLStringType": str,
+})
+
+PersistentAppTileData = TypedDict('PersistentAppTileData', {
+    "book": str,
+    "bundle-identifier": str,
+    "dock-extra": bool,
+    "file-data": PersistentAppFileData,
+    "file-label": Optional[str],
+    "file-mod-date": int,
+    "file-type": int,
+    "is-beta": bool,
+    "parent-mod-date": int,
+})
+
+PersistentApp = TypedDict('PersistentApp', {
+    "GUID": int,
+    "tile-data": PersistentAppTileData,
+    "tile-type": str,
+})
+
+PersistentApps = List[PersistentApp]
+PersistentAppsRecords = Dict[int, PersistentApp]
+
 
 # Check if the script is running on MacOS, and if not, exit.
 if platform.system() != "Darwin": 
