@@ -334,19 +334,55 @@ dirty = False
 # print(f"App numbers: {' '.join(app_numbers)}")
 # refreshScreen()
 
-while True: # Get the user's choice
-    user_choice = input("Enter your choice: ")
-    if not user_choice.lower() in ['a', 'r', 'q']: # Check if the user's choice is valid, and if not, print clear the line and ask for another choice.
-        print("\033[F", end=" " * 35 + "\r", flush=True) # Clear the line if the user's choice is invalid
-    elif user_choice.lower() == "a": # If the user's choice is a, erase all the titles
+while True:  # Get the user's choice
+    refreshScreen()
+    input_prompt = f"{TextStyle.CYAN}Enter your choice:{TextStyle.NC} "
+    if dirty:
+        input_prompt = f"{TextStyle.CYAN}Enter your choice{TextStyle.NC} {TextStyle.YELLOW}(unsaved changes){TextStyle.NC}: "
+    user_choice = input(input_prompt)
+    input_char = user_choice.lower()[0] if string_good(user_choice) else 'n'  # No action by default
+    if input_char in app_numbers:
+        # Specific app number, toggle it
+        app_index = int(user_choice) - 1
+        single_app = app_map[app_index]
+        dirty = True
+        toggleAppLabel(single_app)
+        # print()
+        # writeChanges()
+    elif input_char not in ['a', 'r', 's', 'q']:  # Check if the user's choice is valid, and if not, print clear the line and ask for another choice.
+        print("\033[F", end=" " * 35 + "\r", flush=True)  # Clear the line if the user's choice is invalid
+    elif input_char == "s":  # If the user's choice is s, save changes
+        writeChanges()
+        dirty = False
+        exit()
+    elif input_char == "a":  # If the user's choice is a, erase all the titles
         deleteTitles()
-        writeChanges()
-        exit()
-    elif user_choice.lower() == "r": # If the user's choice is r, restore all the titles 
+        dirty = True
+        # writeChanges()
+        # exit()
+    elif input_char == "r":  # If the user's choice is r, restore all the titles
         restoreTitles()
-        writeChanges()
-        exit()
-    elif user_choice.lower() == "q": # If the user's choice is q, quit the app
-        print("\n> Quitting the app...\n")
-        exit()
-           
+        dirty = True
+        # writeChanges()
+        # exit()
+    elif input_char == "q":  # If the user's choice is q, quit the app
+        if dirty:
+            confirm_exit = input(f"\n{TextStyle.YELLOW}> Changes made, do you want to save? (y/n/c[ancel]){TextStyle.NC} ")
+            user_char = confirm_exit.lower()[0] if string_good(confirm_exit) else 'c'
+            if user_char not in ['y', 'n', 'c']:
+                print("\033[F", end=" " * 35 + "\r", flush=True)  # Clear the line if the user's choice is invalid
+            elif user_char == 'y':
+                print(f"\n{TextStyle.BOLD}> Saving changes ...{TextStyle.NC}\n")
+                writeChanges()
+                dirty = False
+                print(f"\n{TextStyle.BOLD}> Changes saved, quitting ...{TextStyle.NC}\n")
+                exit()
+            elif user_char == 'n':
+                print(f"\n{TextStyle.YELLOW}> Quitting without saving ...{TextStyle.NC}\n")
+                exit()
+            else:
+                # Cancel, return to menu
+                pass
+        else:
+            print("\n> Quitting ...\n")
+            exit()
