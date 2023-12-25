@@ -265,7 +265,19 @@ def restoreTitles():  # Restore all the titles of the apps in the dock
         # app["tile-data"]["file-label"] = app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
 
 
-def writeChanges(): # Write the changes to the dock plist file and restart the dock
+def getAppList() -> PersistentAppsRecords:
+    global app_map
+    app_map = dict()
+    if not list_good(all_apps):
+        print(TextStyle.RED + "Error: no apps found in doc" + TextStyle.NC)
+        exit()
+    for i, app in enumerate(all_apps):
+        app_map[i] = app
+    # PRETTY.pprint(f"Adding app {app_number}")
+    return app_map
+
+
+def writeChanges():  # Write the changes to the dock plist file and restart the dock
     print("> Writing changes to the dock plist file...")
     with open(dock_plist, 'wb') as fp:
         plistlib.dump(dock_plist_opened, fp)
