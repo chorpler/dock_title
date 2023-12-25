@@ -96,44 +96,19 @@ else:  # If the dock plist backup file exists, detele it and create anther backu
 
 dock_plist_opened = plistlib.load(open(dock_plist, "rb"))  # Open the dock plist file in read mode
 
-if "persistent-apps" in dock_plist_opened: # Check if there are any persistent apps in the dock, and if not, exit.
-    persistent_apps = dock_plist_opened["persistent-apps"]
+if "persistent-apps" in dock_plist_opened:  # Check if there are any persistent apps in the dock, and if not, exit.
+    persistent_apps = cast(PersistentApps, dock_plist_opened["persistent-apps"])
 else:
     print(f"\n{TextStyle.RED}Error: No apps found in the dock. Exiting...{TextStyle.NC}\n")
     exit()
 
-if "recent-apps" in dock_plist_opened: # Check if there are any recent apps in the dock, and if so, add them to the persistent apps list.
-    all_apps = persistent_apps + dock_plist_opened["recent-apps"]
-else: # If there are no recent apps in the dock, just use the persistent apps list.
-    all_apps = persistent_apps
+if "recent-apps" in dock_plist_opened:  # Check if there are any recent apps in the dock, and if so, add them to the persistent apps list.
+    all_apps = cast(PersistentApps, persistent_apps) + cast(PersistentApps, dock_plist_opened["recent-apps"])
+else:  # If there are no recent apps in the dock, just use the persistent apps list.
+    all_apps = cast(PersistentApps, persistent_apps)
 
-if "persistent-others" in dock_plist_opened: # Check if there are any persistent others in the dock, and if so, add them to the persistent apps list.
-    all_apps = all_apps + dock_plist_opened["persistent-others"]
-
-def printApps():
-    if not all_apps: # Check if there are any apps in the dock, and if not, exit.
-        print(textStyle.BOLD + "Error: " + textStyle.reset + "No apps found in the dock. Exiting...\n")
-        exit()
-    print("{}{}{:>4} {} {:>41}{}\n".format(textStyle.underline, textStyle.BOLD, "No.", "App Name", "App Title", textStyle.reset))
-    app_number = 1
-    for app in all_apps:
-        app_name = app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
-        if "file-label" in app["tile-data"]:
-            app_title = app["tile-data"]["file-label"]
-        else:
-            app_title = ""
-        print("{:>3}. {} {:>40}".format(app_number, app_name, app_title))
-        app_number += 1
-
-def deleteTitles(): # Erase all the titles of the apps in the dock
-    print("\n> Erasing all titles...") 
-    for app in all_apps:
-        app["tile-data"]["file-label"] = ""
-
-def restoreTitles(): # Restore all the titles of the apps in the dock
-    print("\n> Restoring all titles...")
-    for app in all_apps:
-        app["tile-data"]["file-label"] = app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
+if "persistent-others" in dock_plist_opened:  # Check if there are any persistent others in the dock, and if so, add them to the persistent apps list.
+    all_apps = all_apps + cast(PersistentApps, dock_plist_opened["persistent-others"])
 
 def writeChanges(): # Write the changes to the dock plist file and restart the dock
     print("> Writing changes to the dock plist file...")
