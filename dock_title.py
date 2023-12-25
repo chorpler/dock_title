@@ -110,6 +110,161 @@ else:  # If there are no recent apps in the dock, just use the persistent apps l
 if "persistent-others" in dock_plist_opened:  # Check if there are any persistent others in the dock, and if so, add them to the persistent apps list.
     all_apps = all_apps + cast(PersistentApps, dock_plist_opened["persistent-others"])
 
+
+##################################################
+# Utility functions for strings, lists, dicts
+##################################################
+def is_list(value: Any) -> bool:
+    result = False
+    if value is not None:
+        if type(value) == list:
+            result = True
+    return result
+
+
+def list_good(value: Any) -> bool:
+    return is_list(value) and len(value) > 0
+
+
+def is_dict(value: Any) -> bool:
+    result = False
+    if value is not None:
+        if type(value) == dict or type(value) == OrderedDict:
+            result = True
+    return result
+
+
+def dict_good(value: Any) -> bool:
+    return is_dict(value) and len(value) > 0
+
+
+def is_string(value: Any) -> bool:
+    result = False
+    if value is not None:
+        if type(value) == str or type(value) == bytes:
+            result = True
+    return result
+
+
+def string_good(value: Any) -> bool:
+    return is_string(value) and len(value) > 0
+
+
+##################################################
+# App-specific functions
+############################################
+def isValid(app: PersistentApp) -> bool:
+    if app is not None and app["GUID"] is not None and app['tile-data'] is not None:
+        return True
+    return False
+
+
+def get_app_name(app: PersistentApp):
+    if isValid(app):
+        return app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
+
+
+def get_app_label(app: PersistentApp) -> str:
+    result = ""
+    if isValid(app) and 'file-label' in app["tile-data"]:
+        result = app["tile-data"]["file-label"]
+    return result
+
+
+def set_app_label(app: PersistentApp, label: str):
+    new_label: str = ""
+    if isValid(app):
+        app_name = get_app_name(app)
+        if string_good(label):
+            print(f"\n> Setting label for {app_name} to '{label}' ...")
+            new_label = label
+        else:
+            print(f"\n> Deleting label for app {app_name} ...")
+        app["tile-data"]["file-label"] = new_label
+
+
+def labelApp(app: PersistentApp, label: str = ""):
+    if isValid(app):
+        app_name = get_app_name(app)
+        if label is not None and type(label) == str:
+            app_name = label
+        set_app_label(app, app_name)
+    else:
+        print(TextStyle.RED + f"ERROR: invalid app record provided" + TextStyle.NC)
+
+
+def toggleAppLabel(app: PersistentApp) -> str:
+    label_current = ""
+    label_new = ""
+    if isValid(app):
+        app_name = get_app_name(app)
+        app_label = get_app_label(app)
+        label_current = app_label
+        if string_good(app_label):
+            label_new = ""
+        else:
+            label_new = app_name
+        set_app_label(app, label_new)
+        print(f"Toggling label for app {app_name}: '{label_current}' => '{label_new}'")
+    else:
+        print(f"{TextStyle.RED}ERROR: invalid app record provided{TextStyle.NC}")
+    return label_new
+
+
+def restoreAppLabel(app: PersistentApp):
+    if isValid(app):
+        app_name = get_app_name(app)
+        set_app_label(app, app_name)
+    else:
+        print(TextStyle.RED + f"ERROR: invalid app record provided" + TextStyle.NC)
+
+
+def labelAppWithGuid(app_guid: int, label: str):  # Erase title for the app with specified GUID
+    app: PersistentApp
+    for one_app in all_apps:
+        if one_app["GUID"] == app_guid:
+            app = one_app
+            break
+    if isValid(app):
+        return labelApp(app, label)
+    else:
+        print(TextStyle.RED + f"ERROR: could not find app with GUID {app_guid}" + TextStyle.NC)
+
+
+def labelAppNamed(app_name: str, label: str):  # Erase title for the app with specified name
+    app: PersistentApp
+    for one_app in all_apps:
+        one_app_name = get_app_name(one_app)
+        if one_app_name == app_name:
+            app = one_app
+            break
+    if isValid(app):
+        return labelApp(app, label)
+    else:
+        print(TextStyle.RED + f"ERROR: could not find app named {app_name}" + TextStyle.NC)
+
+
+def deleteAppWithGuid(app_guid: int):
+    return labelAppWithGuid(app_guid, "")
+
+
+def deleteAppNamed(app_name: str):
+    return labelAppNamed(app_name, "")
+
+
+def deleteTitles():  # Erase all the titles of the apps in the dock
+    print("\n> Erasing all titles...")
+    for one_app in all_apps:
+        labelApp(one_app, "")
+
+
+def restoreTitles():  # Restore all the titles of the apps in the dock
+    print("\n> Restoring all titles...")
+    for one_app in all_apps:
+        restoreAppLabel(one_app)
+        # app["tile-data"]["file-label"] = app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
+
+
 def writeChanges(): # Write the changes to the dock plist file and restart the dock
     print("> Writing changes to the dock plist file...")
     with open(dock_plist, 'wb') as fp:
