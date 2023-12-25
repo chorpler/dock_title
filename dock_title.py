@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # This is a simple script that allows you to Clear and Restore the titles of your MacOS dock's apps.
 # It will not detele the Finder, Trash, or any other system apps titles.
 
