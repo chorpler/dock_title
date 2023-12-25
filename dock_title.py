@@ -77,16 +77,16 @@ app_map: PersistentAppsRecords = dict()
 
 
 # Check if the script is running on MacOS, and if not, exit.
-if platform.system() != "Darwin": 
-    print(textStyle.BOLD + "\nError: " + textStyle.reset + "This script is for MacOS only. Exiting...\n")
+if platform.system() != "Darwin":
+    print(f"\n{TextStyle.RED}Error: this script is for MacOS only. Exiting...{TextStyle.NC}\n")
     exit()
 
 dock_plist = os.path.expanduser("~/Library/Preferences/com.apple.dock.plist") # Define the path to the dock plist file
 dock_plist_backup = os.path.expanduser("~/Library/Preferences/com.apple.dock.plist.backup") # Define the path to the dock plist backup file
 
-if not os.path.exists(dock_plist): # Check if the dock plist file exists, and if not, exit.
-    print(textStyle.BOLD + "\nError: " + textStyle.reset + "Dock plist file not found. Exiting...\n")
-    exit() 
+if not os.path.exists(dock_plist):  # Check if the dock plist file exists, and if not, exit.
+    print(f"\n{TextStyle.RED}Error: Dock plist file not found. Exiting...{TextStyle.NC}\n")
+    exit()
 
 if not os.path.exists(dock_plist_backup): # Check if the dock plist backup file exists, and if not, create it.
     subprocess.call(["cp", dock_plist, dock_plist_backup]) 
@@ -99,7 +99,7 @@ dock_plist_opened = plistlib.load(open(dock_plist, "rb")) # Open the dock plist 
 if "persistent-apps" in dock_plist_opened: # Check if there are any persistent apps in the dock, and if not, exit.
     persistent_apps = dock_plist_opened["persistent-apps"]
 else:
-    print(textStyle.BOLD + "\nError: " + textStyle.reset + "No apps found in the dock. Exiting...\n")
+    print(f"\n{TextStyle.RED}Error: No apps found in the dock. Exiting...{TextStyle.NC}\n")
     exit()
 
 if "recent-apps" in dock_plist_opened: # Check if there are any recent apps in the dock, and if so, add them to the persistent apps list.
