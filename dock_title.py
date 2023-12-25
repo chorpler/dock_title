@@ -29,10 +29,6 @@ class TextStyle:  # Define text styles
     reset = '\033[0m'
     NC = reset
 
-class textStyle: # Define text styles
-   BOLD = '\033[1m'
-   underline = '\033[4m'
-   reset = '\033[0m'
 
 app_logo = "   ___  ____  _______ __   __________________   ____\n  / _ \/ __ \/ ___/ //_/  /_  __/  _/_  __/ /  / __/\n / // / /_/ / /__/ ,<      / / _/ /  / / / /__/ _/\n/____/\____/\___/_/|_|    /_/ /___/ /_/ /____/___/\n\nby Victor D. NEAMT\n"
 
