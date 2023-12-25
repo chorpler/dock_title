@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 
 # This is a simple script that allows you to Clear and Restore the titles of your MacOS dock's apps.
-# It will not detele the Finder, Trash, or any other system apps titles.
+# It will not delete the Finder, Trash, or any other system apps titles.
+
+import os
+import subprocess
+import platform
+import pprint
+import plistlib
+
+from collections import OrderedDict
+
+from typing import Any, List, Dict, TypedDict, Optional, cast
 
 import os, plistlib, subprocess, platform
 
