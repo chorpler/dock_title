@@ -88,13 +88,13 @@ if not os.path.exists(dock_plist):  # Check if the dock plist file exists, and i
     print(f"\n{TextStyle.RED}Error: Dock plist file not found. Exiting...{TextStyle.NC}\n")
     exit()
 
-if not os.path.exists(dock_plist_backup): # Check if the dock plist backup file exists, and if not, create it.
-    subprocess.call(["cp", dock_plist, dock_plist_backup]) 
-else: # If the dock plist backup file exists, detele it and create anther backup.
+if not os.path.exists(dock_plist_backup):  # Check if the dock plist backup file exists, and if not, create it.
+    subprocess.call(["cp", dock_plist, dock_plist_backup])
+else:  # If the dock plist backup file exists, detele it and create anther backup.
     subprocess.call(["rm", dock_plist_backup])
     subprocess.call(["cp", dock_plist, dock_plist_backup])
 
-dock_plist_opened = plistlib.load(open(dock_plist, "rb")) # Open the dock plist file in read mode
+dock_plist_opened = plistlib.load(open(dock_plist, "rb"))  # Open the dock plist file in read mode
 
 if "persistent-apps" in dock_plist_opened: # Check if there are any persistent apps in the dock, and if not, exit.
     persistent_apps = dock_plist_opened["persistent-apps"]
