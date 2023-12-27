@@ -153,6 +153,14 @@ def string_good(value: Any) -> bool:
     return is_string(value) and len(value) > 0
 
 
+def terminal_clear():
+    # Print the following ANSI escape codes:
+    # - chr(27) + "[2J" to clear screen
+    # - chr(27) + "[H" to reset cursor position to top left
+    # Specify end="" to avoid printing a newline
+    print(f"\x1b[2J\x1b[H", end="")
+
+
 ##################################################
 # App-specific functions
 ############################################
@@ -319,20 +327,25 @@ def printApps():
 def refreshScreen():
     # global app_map
     # app_map = getAppList()
-    print(chr(27) + "[2J")  # Clear the terminal screen
+    terminal_clear()
     printApps()
-    print(f"\n{TextStyle.UNDERLINE}{TextStyle.BOLD}MENU{TextStyle.NC}: {TextStyle.BOLD}{'a':>6}{TextStyle.NC} {'(erase all)':>12} {TextStyle.BOLD}{'r':>6}{TextStyle.NC} {'(restore all)':>12}")
-    print(f"      {TextStyle.BOLD}{'s':>6}{TextStyle.NC} {'(save all)':>12} {TextStyle.BOLD}{'q':>6}{TextStyle.NC} (quit)")
-    # print("\n{}{}MENU{}:\n\n{}{:>6}{} to erase all titles\n{}{:>6}{} to restore all titles\n{}{:>6}{} to quit the app\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, TextStyle.reset, TextStyle.BOLD, "'a'", TextStyle.reset, TextStyle.BOLD, "'r'",
-    # print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}MENU{TextStyle.NC}:\n\n{TextStyle.BOLD}{'a':>6}{TextStyle.NC} to erase all titles\n{TextStyle.BOLD}{'r':>6}{TextStyle.NC} to restore all titles\n{TextStyle.BOLD}{'q':>6}{TextStyle.NC} to quit the app\n")
+    print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}MENU{TextStyle.NC}: {TextStyle.BOLD}{'a':>6}{TextStyle.NC} {'(erase all)':>12} {TextStyle.BOLD}{'r':>6}{TextStyle.NC} {'(restore all)':>12}")
+    print(f"      {TextStyle.BOLD}{'s':>6}{TextStyle.NC} {'(save all)':>12} {TextStyle.BOLD}{'q':>6}{TextStyle.NC} (quit)\n")
+    # print("\n{}{}MENU{}:\n\n{}{:>6}{} to erase all titles\n{}{:>6}{} to restore all titles\n{}{:>6}{} to quit the app\n".format(
+    # TextStyle.UNDERLINE, TextStyle.BOLD, TextStyle.reset, TextStyle.BOLD, "'a'", TextStyle.reset, TextStyle.BOLD, "'r'",
+    # print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}MENU{TextStyle.NC}:\n\n{TextStyle.BOLD}{'a':>6}{TextStyle.NC} to erase all titles\n" \
+    # "{TextStyle.BOLD}{'r':>6}{TextStyle.NC} to restore all titles\n{TextStyle.BOLD}{'q':>6}{TextStyle.NC} to quit the app\n")
 
 #
 #
-# print(chr(27) + "[2J" + app_logo)  # Clear the terminal screen and print the app logo
+# terminal_clear()
+# print(app_logo)
+# # print(chr(27) + "[2J" + app_logo)  # Clear the terminal screen and print the app logo
 #
 # printApps()  # Print the apps in the dock
-# print("\n{}{}MENU{}:\n\n{}{:>6}{} to erase all titles\n{}{:>6}{} to restore all titles\n{}{:>6}{} to quit the app\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, TextStyle.reset, TextStyle.BOLD, "'a'", TextStyle.reset, TextStyle.BOLD, "'r'",
-#                                                                                                                             TextStyle.reset, TextStyle.BOLD, "'q'", TextStyle.reset))  # Print the menu
+# print("\n{}{}MENU{}:\n\n{}{:>6}{} to erase all titles\n{}{:>6}{} to restore all titles\n{}{:>6}{} to quit the app\n".format(
+# TextStyle.UNDERLINE, TextStyle.BOLD, TextStyle.reset, TextStyle.BOLD, "'a'", TextStyle.reset, TextStyle.BOLD, "'r'",
+# TextStyle.reset, TextStyle.BOLD, "'q'", TextStyle.reset))  # Print the menu
 
 
 app_map = getAppList()
