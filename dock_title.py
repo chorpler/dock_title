@@ -8,6 +8,7 @@ import subprocess
 import platform
 import pprint
 import plistlib
+from tabulate import tabulate, tabulate_formats
 
 from collections import OrderedDict
 
@@ -15,6 +16,8 @@ from typing import Any, List, Dict, TypedDict, Optional, cast
 
 plist_file = "~/Library/Preferences/com.apple.dock.plist"
 plist_file_backup = "~/Library/Preferences/com.apple.dock.plist.backup"
+
+table_format = "fancy_outline"
 
 
 class TextStyle:  # Define text styles
@@ -293,7 +296,12 @@ def printApps():
         print(f"{TextStyle.RED}Error: No apps found in the dock. Exiting...${TextStyle.NC}\n")
         exit()
     # print("{}{}{:>4} {} {:>41}{}\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, "No.", "App Name", "App Title", TextStyle.reset))
-    print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}{'No.':>4} {'App Name'} {'App Title':>41}{TextStyle.NC}")
+    # table = [['col 1', 'col 2', 'col 3', 'col 4'], [1, 2222, 30, 500], [4, 55, 6777, 1]]
+    # print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+    table = [
+        ['#', 'App Name', 'App Title']
+    ]
+    # print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}{'No.':>4} {'App Name'} {'App Title':>41}{TextStyle.NC}")
     for app_number, app in app_map.items():
         app_name = get_app_name(app)
         # app_name = app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
@@ -302,8 +310,10 @@ def printApps():
         else:
             app_title = ""
         # print("{:>3}. {} {:>40}".format(app_number+1, app_name, app_title))
-        print(f"{app_number+1:>3}. {app_name} {app_title:>40}")
+        # print(f"{app_number+1:>3}. {app_name} {app_title:>40}")
+        table.append([app_number+1, app_name, app_title])
         # app_number += 1
+    print(tabulate(table, headers='firstrow', tablefmt=table_format, colalign=('right', 'right', 'left')))
 
 
 def refreshScreen():
