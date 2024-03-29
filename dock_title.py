@@ -4,6 +4,7 @@
 # It will not delete the Finder, Trash, or any other system apps titles.
 
 import os
+import sys
 import subprocess
 import platform
 import pprint
@@ -79,17 +80,21 @@ persistent_apps: PersistentApps = list()
 app_map: PersistentAppsRecords = dict()
 
 
+def exit(code: int = 0):
+    sys.exit(code)
+
+
 # Check if the script is running on MacOS, and if not, exit.
 if platform.system() != "Darwin":
     print(f"\n{TextStyle.RED}Error: this script is for MacOS only. Exiting...{TextStyle.NC}\n")
-    exit()
+    exit(1)
 
 dock_plist = os.path.expanduser(plist_file)  # Define the path to the dock plist file
 dock_plist_backup = os.path.expanduser(plist_file_backup)  # Define the path to the dock plist backup file
 
 if not os.path.exists(dock_plist):  # Check if the dock plist file exists, and if not, exit.
     print(f"\n{TextStyle.RED}Error: Dock plist file not found. Exiting...{TextStyle.NC}\n")
-    exit()
+    exit(1)
 
 if not os.path.exists(dock_plist_backup):  # Check if the dock plist backup file exists, and if not, create it.
     subprocess.call(["cp", dock_plist, dock_plist_backup])
@@ -103,7 +108,7 @@ if "persistent-apps" in dock_plist_opened:  # Check if there are any persistent 
     persistent_apps = cast(PersistentApps, dock_plist_opened["persistent-apps"])
 else:
     print(f"\n{TextStyle.RED}Error: No apps found in the dock. Exiting...{TextStyle.NC}\n")
-    exit()
+    exit(1)
 
 if "recent-apps" in dock_plist_opened:  # Check if there are any recent apps in the dock, and if so, add them to the persistent apps list.
     all_apps = cast(PersistentApps, persistent_apps) + cast(PersistentApps, dock_plist_opened["recent-apps"])
@@ -281,7 +286,7 @@ def getAppList() -> PersistentAppsRecords:
     app_map = dict()
     if not list_good(all_apps):
         print(TextStyle.RED + "Error: no apps found in doc" + TextStyle.NC)
-        exit()
+        exit(1)
     for i, app in enumerate(all_apps):
         app_map[i] = app
     # PRETTY.pprint(f"Adding app {app_number}")
@@ -302,7 +307,7 @@ def printApps():
     if not dict_good(app_map):
         # Check if there are any apps in the dock, and if not, exit.
         print(f"{TextStyle.RED}Error: No apps found in the dock. Exiting...${TextStyle.NC}\n")
-        exit()
+        exit(1)
     # print("{}{}{:>4} {} {:>41}{}\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, "No.", "App Name", "App Title", TextStyle.reset))
     # table = [['col 1', 'col 2', 'col 3', 'col 4'], [1, 2222, 30, 500], [4, 55, 6777, 1]]
     # print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
@@ -377,17 +382,17 @@ while True:  # Get the user's choice
     elif input_char == "s":  # If the user's choice is s, save changes
         writeChanges()
         dirty = False
-        exit()
+        exit(0)
     elif input_char == "a":  # If the user's choice is a, erase all the titles
         deleteTitles()
         dirty = True
         # writeChanges()
-        # exit()
+        # exit(0)
     elif input_char == "r":  # If the user's choice is r, restore all the titles
         restoreTitles()
         dirty = True
         # writeChanges()
-        # exit()
+        # exit(0)
     elif input_char == "q":  # If the user's choice is q, quit the app
         if dirty:
             confirm_exit = input(f"\n{TextStyle.YELLOW}> Changes made, do you want to save? (y/n/c[ancel]){TextStyle.NC} ")
@@ -399,13 +404,13 @@ while True:  # Get the user's choice
                 writeChanges()
                 dirty = False
                 print(f"\n{TextStyle.BOLD}> Changes saved, quitting ...{TextStyle.NC}\n")
-                exit()
+                exit(0)
             elif user_char == 'n':
                 print(f"\n{TextStyle.YELLOW}> Quitting without saving ...{TextStyle.NC}\n")
-                exit()
+                exit(0)
             else:
                 # Cancel, return to menu
                 pass
         else:
             print("\n> Quitting ...\n")
-            exit()
+            exit(0)

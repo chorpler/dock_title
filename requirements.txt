@@ -1,0 +1,6 @@
+# Dependencies for CSView
+# The system-specific install script will install these
+
+pyinstaller
+tabulate
+
