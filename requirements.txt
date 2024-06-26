@@ -2,5 +2,6 @@
 # The system-specific install script will install these
 
 pyinstaller
+termcolor
 tabulate
-
+colorama
