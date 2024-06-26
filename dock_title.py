@@ -806,44 +806,28 @@ def show_usage(argument_parser):
 
 if __name__ == "__main__":
     '''
-    CSView: Given a CSV/TSV filename (or CSV/TSV content on stdin), display or output it with aligned and colorized columns.
+    DockTitle: show or change the popup label for persistent apps in the macOS Dock
     '''
-
-    reading_from_stdin = False
 
     version_string = f"v{VERSION}"
     version_docstring = f"{PROGRAM_NAME} {version_string}"
     version_title = f"{PROGRAM_TITLE} {version_string}"
 
-    description_separator = f"Output separator: character to use to separate columns in output. (Default: "
-    if DEFAULT_SEPARATOR == "\t":
-        description_separator += "tab character"
-    elif DEFAULT_SEPARATOR == " ":
-        description_separator += "space character"
-    else:
-        description_separator += f"\"{DEFAULT_SEPARATOR}\""
-    description_separator += ")"
-
     program_title = ITALIC + colored(version_title, COLOR_PROGRAM_TITLE, attrs=["bold"]) + NOITALIC
-    program_docstring = colored(f"Given a CSV/TSV file (or file contents), display it with aligned and colorized columns, or output it for further processing.", COLOR_DESCRIPTION, attrs=["bold"])
+    program_docstring = colored(f"Show or change the popup label for persistent apps in the macOS Dock", COLOR_DESCRIPTION, attrs=["bold"])
     program_docstring = f"{program_title}: {program_docstring}"
     parser = argparse.ArgumentParser(description=program_docstring, add_help=False, formatter_class=UsageFormatter)
     positional_args = parser.add_argument_group(colored("Arguments", COLOR_GROUP))
-    input_args = parser.add_argument_group(colored("Options (input)", COLOR_GROUP))
+    action_args = parser.add_argument_group(colored("Options (actions)", COLOR_GROUP))
     output_args = parser.add_argument_group(colored("Options (output)", COLOR_GROUP))
     meta_args = parser.add_argument_group(colored("Options (miscellaneous)", COLOR_GROUP))
     # positional_args.add_argument('input_file', nargs='?', default=DEFAULT_INPUT, help=colored("Input file path. If not provided, will attempt to read data from stdin", COLOR_HELP))
     positional_args.add_argument('input_file', nargs='?', help=colored("Input file path. If not provided, will attempt to read data from standard input.", COLOR_HELP))
     # query_args.add_argument('-i', '--input', required=False, type=str, dest="input_file", default=None, help=colored("Input TSV/CSV file", COLOR_HELP))
-    input_args.add_argument('-D', '--delimiter', required=False, type=str, dest="delimiter", default=None, help=colored("Input delimiter: character used to separate columns in input, if input is not standard CSV/TSV format.", COLOR_HELP))
-    output_args.add_argument('-t', '--title-hide', required=False, dest="title_hide", action='store_true', default=DEFAULT_HIDE_TITLE, help=colored("Hide the title bar (don't show file name at top of pager).", COLOR_HELP))
-    output_args.add_argument('-p', '--print', required=False, dest="print_output", action='store_true', default=DEFAULT_PRINT_OUTPUT, help=colored("Print output to terminal instead of displaying in pager.", COLOR_HELP))
-    output_args.add_argument('-q', '--quote-empty', required=False, dest="empty_quotes", action='store_true', default=DEFAULT_QUOTE_EMPTY, help=colored(f"Show empty columns as \"\" (Default: {DEFAULT_QUOTE_EMPTY}).", COLOR_HELP))
-    output_args.add_argument('-b', '--bold', required=False, dest="bold_colors", action='store_true', default=DEFAULT_BOLD, help=colored(f"Use bold colors for columns (Default: {DEFAULT_BOLD}).", COLOR_HELP))
-    output_args.add_argument('-n', '--no-color', required=False, dest="no_color", action='store_true', default=DEFAULT_PLAIN_TEXT, help=colored(f"Do not colorize output, only align columns (Default: {DEFAULT_PLAIN_TEXT}).", COLOR_HELP))
-    output_args.add_argument('-s', '--separator', required=False, type=str, dest="separator", default=None, help=colored(description_separator, COLOR_HELP))
-    output_args.add_argument('-r', '--right-pad', required=False, type=int, dest="padding_right", default=PADDING_RIGHT, help=colored(f"Number of spaces to add to the right of each column for padding. (Default: {PADDING_RIGHT}).", COLOR_HELP))
-    output_args.add_argument('-l', '--left-pad', required=False, type=int, dest="padding_left", default=PADDING_LEFT, help=colored(f"Number of spaces to add to the left of each column for padding. (Default: {PADDING_LEFT}).", COLOR_HELP))
+    action_args.add_argument('-t', '--toggle', required=False, type=str, dest="arg_toggle", default=None, help=colored("Toggle: given a list of numbers, toggle the title of the apps at those positions", COLOR_HELP))
+    action_args.add_argument('-r', '--remove', required=False, type=str, dest="arg_remove", default=None, help=colored("Remove: given a list of numbers, remove the title of the apps at those positions", COLOR_HELP))
+    action_args.add_argument('-e', '--enable', required=False, type=str, dest="arg_enable", default=None, help=colored("Enable: given a list of numbers, enable the title of the apps at those positions", COLOR_HELP))
+    action_args.add_argument('-l', '--list', required=False, dest="arg_list", action='store_true', default=False, help=colored("List: show list of current persistent apps in Dock", COLOR_HELP))
     meta_args.add_argument('-d', '--debug', required=False, dest="debug", action='store_true', help=colored("Show debug information and intermediate steps.", COLOR_HELP))
     meta_args.add_argument('-v', '--version', action='version', version=version_docstring, help=colored("Show program's version number and exit.", COLOR_HELP))
     meta_args.add_argument('-h', '--help', required=False, dest="show_help", action='store_true', help=colored("Show this help message and exit.", COLOR_HELP))
@@ -851,14 +835,25 @@ if __name__ == "__main__":
     inpArgs = parser.parse_args()
     show_help = inpArgs.show_help
     if len(sys.argv) < 2:
-        if not sys.stdin.isatty():
-            # Input available on stdin, use that instead of filename
-            reading_from_stdin = True
-        else:
+        # if not sys.stdin.isatty():
+        #     # Input available on stdin, use that instead of filename
+        #     reading_from_stdin = True
+        # else:
             # No input available on stdin, show usage and exit
-            show_usage(parser)
-            exit_error(1)
+        show_usage(parser)
+        exit_error(1)
     if show_help:
         show_usage(parser)
         exit_error(0)
 
+    debug = inpArgs.debug
+    arg_list = inpArgs.arg_list
+    title_toggle = strip_quotes(inpArgs.arg_toggle) if string_good(inpArgs.arg_toggle) else None
+    title_remove = strip_quotes(inpArgs.arg_remove) if string_good(inpArgs.arg_remove) else None
+    title_enable = strip_quotes(inpArgs.arg_enable) if string_good(inpArgs.arg_enable) else None
+
+    if arg_list:
+        print(", ".join(getAppNameList()))
+        exit_error(0)
+
+    run_interactive()
