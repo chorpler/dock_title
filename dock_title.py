@@ -410,6 +410,17 @@ def getAppList() -> PersistentAppsRecords:
     return app_map
 
 
+def getAppNameList() -> list[str]:
+    global all_apps
+    app_names = list()
+    for i, app in enumerate(all_apps):
+        app_name = get_app_name(app)
+        if string_good(app_name):
+            app_names.append(app_name)
+        else:
+            app_names.append("UNKNOWN")
+    return app_names
+
 def writeChanges():  # Write the changes to the dock plist file and restart the dock
     print("> Writing changes to the dock plist file...")
     with open(dock_plist, 'wb') as fp:
