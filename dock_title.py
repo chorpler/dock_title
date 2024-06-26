@@ -457,7 +457,7 @@ def printApps():
     app_map = getAppList()
     if not dict_good(app_map):
         # Check if there are any apps in the dock, and if not, exit.
-        print(f"{TextStyle.RED}Error: No apps found in the dock. Exiting...${TextStyle.NC}\n")
+        logerr(f"No apps found in the dock. Exiting...")
         exit(1)
     # print("{}{}{:>4} {} {:>41}{}\n".format(TextStyle.UNDERLINE, TextStyle.BOLD, "No.", "App Name", "App Title", TextStyle.reset))
     # table = [['col 1', 'col 2', 'col 3', 'col 4'], [1, 2222, 30, 500], [4, 55, 6777, 1]]
@@ -514,6 +514,190 @@ dirty = False
 # refreshScreen()
 
 
+class UsageFormatter(argparse.HelpFormatter):
+    def __init__(self,
+                 prog,
+                 indent_increment=2,
+                 max_help_position=24,
+                 width=None):
+        self.SUPPRESS = '==SUPPRESS=='
+        self.OPTIONAL = '?'
+        self.ZERO_OR_MORE = '*'
+        self.ONE_OR_MORE = '+'
+        self.PARSER = 'A...'
+        self.REMAINDER = '...'
+        self._UNRECOGNIZED_ARGS_ATTR = '_unrecognized_args'
+        super(UsageFormatter, self).__init__(prog, indent_increment, max_help_position, width)
+
+    # use defined argument order to display usage
+    def _format_usage(self, usage, actions, groups, prefix):
+        if prefix is None:
+            prefix = 'Usage:\n  '
+
+        prefix = colored(prefix, COLOR_GROUP)
+        cmd = colored(self._prog, COLOR_COMMAND)
+
+        # if usage is specified, use that
+        if usage is not None:
+            usage = usage % dict(prog=cmd)
+            # usage = cmd
+
+        # if no optionals or positionals are available, usage is just prog
+        elif usage is None and not actions:
+            # usage = '%(prog)s' % dict(prog=self._prog)
+            usage = f"{cmd}"
+        elif usage is None:
+            # prog = '%(prog)s' % dict(prog=self._prog)
+            prog = cmd
+            # build full usage string
+            action_usage = self._format_actions_usage(actions, groups)  # NEW
+            usage = ' '.join([s for s in [prog, action_usage] if s])
+            # omit the long line wrapping code
+        # prefix with 'usage:'
+        # return '%s%s\n\n' % (prefix, usage)
+        return f"{prefix}{usage}\n"
+
+    def _format_actions_usage(self, actions, groups):
+        # find group indices and identify actions in groups
+        CR = COLOR_ARG_REQUIRED
+        CO = COLOR_ARG_OPTIONAL
+        AR1 = "("
+        AR2 = ")"
+        AO1 = "["
+        AO2 = "]"
+        R1 = CR + AR1
+        R2 = AR2 + NC
+        O1 = CO + AO1
+        O2 = AO2 + NC
+        group_actions = set()
+        inserts = {}
+        for group in groups:
+            if not group._group_actions:
+                raise ValueError(f'empty group {group}')
+
+            try:
+                start = actions.index(group._group_actions[0])
+            except ValueError:
+                continue
+            else:
+                end = start + len(group._group_actions)
+                if actions[start:end] == group._group_actions:
+                    for action in group._group_actions:
+                        group_actions.add(action)
+                    if not group.required:
+                        if start in inserts:
+                            inserts[start] += ' ['
+                            # inserts[start] += ' ' + O1
+                        else:
+                            inserts[start] = '['
+                            # inserts[start] = O1
+                        if end in inserts:
+                            inserts[end] += ']'
+                            # inserts[end] += O2
+                        else:
+                            inserts[end] = ']'
+                            # inserts[end] = O2
+                    else:
+                        if start in inserts:
+                            inserts[start] += ' ('
+                            # inserts[start] += ' ' + R1
+                        else:
+                            inserts[start] = '('
+                            # inserts[start] = R1
+                        if end in inserts:
+                            inserts[end] += ')'
+                            # inserts[end] += R2
+                        else:
+                            inserts[end] = ')'
+                            # inserts[end] = R2
+                    for i in range(start + 1, end):
+                        inserts[i] = '|'
+
+        # collect all actions format strings
+        parts = []
+        for i, action in enumerate(actions):
+
+            # suppressed arguments are marked with None
+            # remove | separators for suppressed arguments
+            if action.help is self.SUPPRESS:
+                parts.append(None)
+                if inserts.get(i) == '|':
+                    inserts.pop(i)
+                elif inserts.get(i + 1) == '|':
+                    inserts.pop(i + 1)
+
+            # produce all arg strings
+            elif not action.option_strings:
+                default = self._get_default_metavar_for_positional(action)
+                part = self._format_args(action, default)
+
+                # if it's in a group, strip the outer []
+                if action in group_actions:
+                    # if part[0] == '[' and part[-1] == ']':
+                    if part[0] == '[' and part[-1] == ']':
+                        part = part[1:-1]
+                    elif part.startswith(O1) and part.endswith(O2):
+                        part = part.strip(O1).strip(O2)
+
+                if not action.required:
+                    # part = colored(part, COLOR_ARG_OPTIONAL)
+                    part = colored(part, **COLOR_ARG_POSTL_OPT)
+                else:
+                    part = colored(part, **COLOR_ARG_POSTL_OPT)
+                # add the action string to the list
+                parts.append(part)
+
+            # produce the first way to invoke the option in brackets
+            else:
+                option_string = action.option_strings[0]
+
+                # if the Optional doesn't take a value, format is:
+                #    -s or --long
+                if action.nargs == 0:
+                    part = action.format_usage()
+                    # part = colored(part, COLOR_ARG_OPTIONAL)
+
+                # if the Optional takes a value, format is:
+                #    -s ARGS or --long ARGS
+                else:
+                    default = self._get_default_metavar_for_optional(action)
+                    args_string = self._format_args(action, default)
+                    part = '%s %s' % (option_string, args_string)
+
+                # make it look optional if it's not required or in a group
+                if not action.required and action not in group_actions:
+                    # part = '[%s]' % part
+                    # part = f"[{colored(part, COLOR_ARG_OPTIONAL)}]"
+                    part = colored(f"[{part}]", COLOR_ARG_OPTIONAL)
+                elif not action.required:
+                    # Color it optional
+                    part = colored(f"[{part}]", COLOR_ARG_OPTIONAL)
+                elif action.required:
+                    part = colored(f"({part})", COLOR_ARG_REQUIRED)
+
+                # add the action string to the list
+                parts.append(part)
+
+        # insert things at the necessary indices
+        for i in sorted(inserts, reverse=True):
+            parts[i:i] = [inserts[i]]
+
+        # join all the action items with spaces
+        text = ' '.join([item for item in parts if item is not None])
+
+        # clean up separators for mutually exclusive groups
+        open = r'[\[(]'
+        close = r'[\])]'
+        text = re.sub(r'(%s) ' % open, r'\1', text)
+        text = re.sub(r' (%s)' % close, r'\1', text)
+        text = re.sub(r'%s *%s' % (open, close), r'', text)
+        text = re.sub(r'\(([^|]*)\)', r'\1', text)
+        text = text.strip()
+
+        # return the text
+        return text
+
+
 def run_interactive():
     while True:  # Get the user's choice
         refreshScreen()
@@ -567,6 +751,44 @@ def run_interactive():
             else:
                 print("\n> Quitting ...\n")
                 exit(0)
+
+
+def format_help(self: ArgumentParser, groups: list[Any] = None):
+    # self == parser
+
+    if groups is None:
+        groups = self._action_groups
+
+    formatter = self._get_formatter()
+
+    # description
+    formatter.add_text(self.description)
+
+    # Command usage (customized)
+    # cmd = sys.argv[0]
+    cmd = self.prog
+    cmd_text = colored(cmd, COLOR_COMMAND)
+
+    arg_text = ""
+    usage_text = colored("Usage", COLOR_GROUP) + ":\n  "
+
+    # Usage line
+    formatter.add_usage(None, self._actions, self._mutually_exclusive_groups, prefix=usage_text)
+    # formatter.add_usage(self.usage, self._actions, self._mutually_exclusive_groups, prefix=usage_text)
+    # formatter.add_usage(, None, None)
+
+    # positionals, optionals and user-defined groups
+    for action_group in groups:
+        formatter.start_section(action_group.title)
+        formatter.add_text(action_group.description)
+        formatter.add_arguments(action_group._group_actions)
+        formatter.end_section()
+
+    # epilog
+    formatter.add_text(self.epilog)
+
+    # determine help from format above
+    return formatter.format_help()
 
 
 def show_usage(argument_parser):
