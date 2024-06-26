@@ -39,9 +39,9 @@ try:
     from collections.abc import Generator
     from termcolor import colored, cprint
     import colorama
-    from pypager.source import StringSource, FormattedTextSource
-    from pypager.pager import Pager
-    from prompt_toolkit import ANSI
+    # from pypager.source import StringSource, FormattedTextSource
+    # from pypager.pager import Pager
+    # from prompt_toolkit import ANSI
 except ImportError as e:
     print(f"{RED}{UL}ERROR:{NOUL} {str(e)}{NC}", file=sys.stderr)
     print(f"{RED}{UL}STACK TRACE:{NOUL} {traceback.format_exc()}{NC}", file=sys.stderr)
