@@ -160,6 +160,11 @@ Log = {
 }
 
 
+def exit_error(code: int):
+    # Add custom error logging or messages here
+    sys.exit(code)
+
+
 
 # Define types for a persistent app record from the Dock plist file
 PersistentAppFileData = TypedDict('PersistentAppFileData', {
@@ -273,6 +278,24 @@ def is_string(value: Any) -> bool:
 
 def string_good(value: Any) -> bool:
     return is_string(value) and len(value) > 0
+
+
+def string_bad(value: Any) -> bool:
+    return not string_good(value)
+
+
+def strip_quotes(s: str) -> str:
+    if string_bad(s):
+        return None
+    # unquoted = re.sub(r"['\"`]+", "", s)
+    unquoted = s.strip("\"'` \t")
+    if re.search(r"\s", unquoted):
+        return f"\"{unquoted}\""
+    else:
+        return unquoted
+    # if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')) or (s.startswith("`") and s.endswith("`")):
+    #     return s[1:-1]
+    # return s
 
 
 def terminal_clear():
