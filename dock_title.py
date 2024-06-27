@@ -134,6 +134,7 @@ def logdbg(*args, **kwargs):
     label = "DEBUG"
     label_color = color_debug
     output_debug = debug
+    # print(colored(f"[{label}] output_debug is: '{output_debug}'", label_color))
     if output_debug:
         print(colored(f"[{label}]", label_color), " ".join(map(str, args)), **kwargs, file=sys.stderr)
 
@@ -310,7 +311,8 @@ def terminal_clear():
 # App-specific functions
 ############################################
 def isValid(app: PersistentApp) -> bool:
-    if app is not None and app["GUID"] is not None and app['tile-data'] is not None:
+    logdbg(f"isValid: called with app:", app)
+    if app is not None and 'GUID' in app and 'tile-data' in app and app["GUID"] is not None and app['tile-data'] is not None:
         return True
     return False
 
@@ -699,6 +701,7 @@ class UsageFormatter(argparse.HelpFormatter):
 
 
 def run_interactive():
+    dirty = False
     while True:  # Get the user's choice
         refreshScreen()
         input_prompt = f"{TextStyle.CYAN}Enter your choice:{TextStyle.NC} "
@@ -834,14 +837,14 @@ if __name__ == "__main__":
 
     inpArgs = parser.parse_args()
     show_help = inpArgs.show_help
-    if len(sys.argv) < 2:
-        # if not sys.stdin.isatty():
-        #     # Input available on stdin, use that instead of filename
-        #     reading_from_stdin = True
-        # else:
-            # No input available on stdin, show usage and exit
-        show_usage(parser)
-        exit_error(1)
+    # if len(sys.argv) < 2:
+    #     # if not sys.stdin.isatty():
+    #     #     # Input available on stdin, use that instead of filename
+    #     #     reading_from_stdin = True
+    #     # else:
+    #         # No input available on stdin, show usage and exit
+    #     show_usage(parser)
+    #     exit_error(1)
     if show_help:
         show_usage(parser)
         exit_error(0)
