@@ -317,7 +317,14 @@ def isValid(app: PersistentApp) -> bool:
     return False
 
 
-def get_app_name(app: PersistentApp):
+def get_app_guid(app: PersistentApp) -> str:
+    if isValid(app):
+        return app["GUID"]
+    else:
+        logerr(f"get_app_guid: could not find GUID for app")
+
+
+def get_app_name(app: PersistentApp) -> str:
     if isValid(app):
         return app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
 
@@ -348,7 +355,7 @@ def labelApp(app: PersistentApp, label: str = ""):
             app_name = label
         set_app_label(app, app_name)
     else:
-        print(TextStyle.RED + f"ERROR: invalid app record provided" + TextStyle.NC)
+        logerr(f"invalid app record provided")
 
 
 def toggleAppLabel(app: PersistentApp) -> str:
@@ -365,7 +372,7 @@ def toggleAppLabel(app: PersistentApp) -> str:
         set_app_label(app, label_new)
         print(f"Toggling label for app {app_name}: '{label_current}' => '{label_new}'")
     else:
-        print(f"{TextStyle.RED}ERROR: invalid app record provided{TextStyle.NC}")
+        logerr(f"invalid app record provided")
     return label_new
 
 
@@ -374,7 +381,7 @@ def restoreAppLabel(app: PersistentApp):
         app_name = get_app_name(app)
         set_app_label(app, app_name)
     else:
-        print(TextStyle.RED + f"ERROR: invalid app record provided" + TextStyle.NC)
+        logerr(f"invalid app record provided")
 
 
 def labelAppWithGuid(app_guid: int, label: str):  # Erase title for the app with specified GUID
@@ -386,7 +393,7 @@ def labelAppWithGuid(app_guid: int, label: str):  # Erase title for the app with
     if isValid(app):
         return labelApp(app, label)
     else:
-        print(TextStyle.RED + f"ERROR: could not find app with GUID {app_guid}" + TextStyle.NC)
+        logerr(f"ERROR: could not find app with GUID {app_guid}")
 
 
 def labelAppNamed(app_name: str, label: str):  # Erase title for the app with specified name
@@ -399,15 +406,19 @@ def labelAppNamed(app_name: str, label: str):  # Erase title for the app with sp
     if isValid(app):
         return labelApp(app, label)
     else:
-        print(TextStyle.RED + f"ERROR: could not find app named {app_name}" + TextStyle.NC)
+        logerr(f"ERROR: could not find app named {app_name}")
 
 
-def deleteAppWithGuid(app_guid: int):
+def deleteAppWithGuid(app_guid: str):
     return labelAppWithGuid(app_guid, "")
 
 
 def deleteAppNamed(app_name: str):
     return labelAppNamed(app_name, "")
+
+
+def deleteApp(app: PersistentApp):
+    return deleteAppWithGuid(get_app_guid(app))
 
 
 def deleteTitles():  # Erase all the titles of the apps in the dock
@@ -423,16 +434,43 @@ def restoreTitles():  # Restore all the titles of the apps in the dock
         # app["tile-data"]["file-label"] = app["tile-data"]["file-data"]["_CFURLString"].replace("%20", " ").split("/")[-2].replace(".app", "")
 
 
+def restoreApp(app: PersistentApp):
+    if isValid(app):
+        restoreAppLabel(app)
+    else:
+        logerr(f"restoreApp: invalid app provided")
+
+
 def getAppList() -> PersistentAppsRecords:
     global app_map
     app_map = dict()
     if not list_good(all_apps):
-        print(TextStyle.RED + "Error: no apps found in doc" + TextStyle.NC)
+        logerr("no persistent apps found in dock")
         exit(1)
     for i, app in enumerate(all_apps):
         app_map[i] = app
     # PRETTY.pprint(f"Adding app {app_number}")
     return app_map
+
+
+def get_app_at_index(app_number: int) -> PersistentApp:
+    if app_number is not None and app_number >= 0 and app_number < len(all_apps):
+        return all_apps[app_number]
+    else:
+        logerr(f"get_app_number: could not find app number {app_number}, valid numbers are 0-{len(all_apps)-1}")
+        exit_error(1)
+
+
+def get_app_index(app: PersistentApp) -> int:
+    if isValid(app):
+        try:
+            return all_apps.index(app)
+        except ValueError:
+            logerr(f"get_app_index: could not find app {get_app_name(app)}")
+            exit_error(1)
+    else:
+        logerr(f"get_app_index: invalid app provided")
+        exit_error(1)
 
 
 def getAppNameList() -> list[str]:
@@ -494,6 +532,33 @@ def refreshScreen():
     # print(f"{TextStyle.UNDERLINE}{TextStyle.BOLD}MENU{TextStyle.NC}:\n\n{TextStyle.BOLD}{'a':>6}{TextStyle.NC} to erase all titles\n" \
     # "{TextStyle.BOLD}{'r':>6}{TextStyle.NC} to restore all titles\n{TextStyle.BOLD}{'q':>6}{TextStyle.NC} to quit the app\n")
 
+
+def parse_list(app_numbers: str) -> list[int]:
+    global max_app_number
+    if string_bad(app_numbers):
+        logerr(f"parse_list: must provide a string to parse into a list of individual numbers")
+        return None
+    result = list([])
+
+    # Split the input string by commas to handle individual numbers and ranges
+    parts = app_numbers.split(',')
+
+    for part in parts:
+        if '-' in part:
+            # Handle ranges
+            start, end = part.split('-')
+            start = int(start)
+            end = int(end) if end else max_app_number  # If end is empty, use max_app_number
+            result.extend(range(start, end + 1))
+        else:
+            # Handle individual numbers
+            result.append(int(part))
+
+    # Return the sorted and unique list of numbers
+    return list(sorted(set(result)))
+
+
+
 #
 #
 # terminal_clear()
@@ -509,6 +574,8 @@ def refreshScreen():
 app_map = getAppList()
 app_numbers = list(app_map.keys())
 app_numbers = list(map(lambda x: str(x+1), app_numbers))
+app_count = len(app_numbers)
+max_app_number = app_count - 1
 
 dirty = False
 
@@ -722,7 +789,7 @@ def run_interactive():
         elif input_char == "s":  # If the user's choice is s, save changes
             writeChanges()
             dirty = False
-            exit(0)
+            exit_error(0)
         elif input_char == "a":  # If the user's choice is a, erase all the titles
             deleteTitles()
             dirty = True
@@ -744,16 +811,16 @@ def run_interactive():
                     writeChanges()
                     dirty = False
                     print(f"\n{TextStyle.BOLD}> Changes saved, quitting ...{TextStyle.NC}\n")
-                    exit(0)
+                    exit_error(0)
                 elif user_char == 'n':
                     print(f"\n{TextStyle.YELLOW}> Quitting without saving ...{TextStyle.NC}\n")
-                    exit(0)
+                    exit_error(0)
                 else:
                     # Cancel, return to menu
                     pass
             else:
                 print("\n> Quitting ...\n")
-                exit(0)
+                exit_error(0)
 
 
 def format_help(self: ArgumentParser, groups: list[Any] = None):
@@ -831,6 +898,7 @@ if __name__ == "__main__":
     action_args.add_argument('-r', '--remove', required=False, type=str, dest="arg_remove", default=None, help=colored("Remove: given a list of numbers, remove the title of the apps at those positions", COLOR_HELP))
     action_args.add_argument('-e', '--enable', required=False, type=str, dest="arg_enable", default=None, help=colored("Enable: given a list of numbers, enable the title of the apps at those positions", COLOR_HELP))
     action_args.add_argument('-l', '--list', required=False, dest="arg_list", action='store_true', default=False, help=colored("List: show list of current persistent apps in Dock", COLOR_HELP))
+    meta_args.add_argument('-D', '--dry-run', required=False, dest="arg_dryrun", action='store_true', help=colored("Show what would be done without actually doing it.", COLOR_HELP))
     meta_args.add_argument('-d', '--debug', required=False, dest="debug", action='store_true', help=colored("Show debug information and intermediate steps.", COLOR_HELP))
     meta_args.add_argument('-v', '--version', action='version', version=version_docstring, help=colored("Show program's version number and exit.", COLOR_HELP))
     meta_args.add_argument('-h', '--help', required=False, dest="show_help", action='store_true', help=colored("Show this help message and exit.", COLOR_HELP))
@@ -850,13 +918,54 @@ if __name__ == "__main__":
         exit_error(0)
 
     debug = inpArgs.debug
+    dry_run = inpArgs.arg_dryrun
     arg_list = inpArgs.arg_list
     title_toggle = strip_quotes(inpArgs.arg_toggle) if string_good(inpArgs.arg_toggle) else None
     title_remove = strip_quotes(inpArgs.arg_remove) if string_good(inpArgs.arg_remove) else None
     title_enable = strip_quotes(inpArgs.arg_enable) if string_good(inpArgs.arg_enable) else None
 
     if arg_list:
-        print(", ".join(getAppNameList()))
+        output = ""
+        for i, app_name in enumerate(getAppNameList()):
+            if i > 0:
+                output += ", "
+                # output += "\t"
+            # output += f"{i+1}: [{app_name}]"
+            output += f"[{i+1:02d}|{app_name}]"
+        print(output)
+        exit_error(0)
+
+    if string_good(title_remove):
+        app_number_list = parse_list(title_remove)
+        for i in app_number_list:
+            app = get_app_at_index(i-1)
+            if isValid(app):
+                deleteApp(app)
+        if not dry_run:
+            writeChanges()
+            dirty = False
+        exit_error(0)
+
+    if string_good(title_enable):
+        app_number_list = parse_list(title_enable)
+        for i in app_number_list:
+            app = get_app_at_index(i-1)
+            if isValid(app):
+                restoreApp(app)
+        if not dry_run:
+            writeChanges()
+            dirty = False
+        exit_error(0)
+
+    if string_good(title_toggle):
+        app_number_list = parse_list(title_toggle)
+        for i in app_number_list:
+            app = get_app_at_index(i-1)
+            if isValid(app):
+                toggleAppLabel(app)
+        if not dry_run:
+            writeChanges()
+            dirty = False
         exit_error(0)
 
     run_interactive()
